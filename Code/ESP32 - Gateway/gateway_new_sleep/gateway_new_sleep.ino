@@ -307,6 +307,8 @@ void loop() {
           period3 = doc["Frequency3"].as<int>();
           numImage = doc["NumImage"].as<uint8_t>();
           timeDiff = doc["timeDiff"].as<int>();
+          // MSI ----------------------------------------------------------------------------------------
+
           // Print the frequencies
           Serial.print("Period 1: ");
           Serial.println(period1);
@@ -318,6 +320,7 @@ void loop() {
           Serial.println(numImage);
           Serial.print("Sleep Time: ");
           Serial.println(timeDiff);
+          // MSI ----------------------------------------------------------------------------------------
 
           // End connection
           http.end();
@@ -349,6 +352,8 @@ void loop() {
       SerialPort.write(period2);
       SerialPort.write(period3);
       SerialPort.write(numImage);
+      // MSI ----------------------------------------------------------------------------------------
+
       // sending all 4 bytes of timediff
       char byte1 = (timeDiff >> 24) & 0xFF;
       char byte2 = (timeDiff >> 16) & 0xFF;
@@ -365,7 +370,7 @@ void loop() {
       SerialPort.write("\r");
     }
   }
-  // case 2 => 
+  // case 1, get data from UART=> 
   if (!flag){
     //Serial.println("Waiting for Bytes");
     if (flag2){
