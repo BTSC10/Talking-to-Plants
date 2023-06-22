@@ -222,6 +222,7 @@ void receivedCallback( uint32_t from, String &msg ) {
         for (int i = 0 ; i <4 ; i++){
           timeDiffTable[i] = SerialPort.read();
         }
+        // MSI ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         /*
         timeDiff = (static_cast<unsigned long>(byte1) << 24) |

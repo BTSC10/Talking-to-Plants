@@ -14,6 +14,7 @@ DC_offset = 3500-600 #4095 - 0
 Amplitude = 4095-DC_offset-700
 Frequency = [1,0.5,0.1]
 PeriodTable = [7,2,1]
+## MSI ----------------------------------------------------------------------------------------------------------------
 Period= 10 #works within 1 to 10
 Num_per_wave=5
 capture_delay= Period/Num_per_wave
@@ -21,54 +22,12 @@ buffersize=1024
 flag = True
 packetSize = 3000
 headerSize = 5
-""" # cause sensor & stm32 to sleep
-# Deep Sleep Mode Example
-# This example demonstrates the low-power deep sleep mode plus sensor shutdown.
-# Note the camera will reset after wake-up from deep sleep. To find out if the cause of reset
-# is deep sleep, call the machine.reset_cause() function and test for machine.DEEPSLEEP_RESET
-
-import pyb, machine, sensor
-
-# Create and init RTC object.
-rtc = pyb.RTC()
-
-# (year, month, day[, hour[, minute[, second[, microsecond[, tzinfo]]]]])
-rtc.datetime((2014, 5, 1, 4, 13, 0, 0, 0))
-
-# Print RTC info.
-print(rtc.datetime())
-
-sensor.reset()
-# Optionally bypass the regulator on OV7725
-# for the lowest possible power consumption.
-if (sensor.get_id() == sensor.OV7725):
-    # Bypass internal regulator
-    sensor.__write_reg(0x4F, 0x18)
-
-# Enable sensor softsleep
-sensor.sleep(True)
-
-# Shutdown the sensor (pulls PWDN high).
-sensor.shutdown(True)
-
-# Enable RTC interrupts every 30 seconds.
-# Note the camera will RESET after wakeup from Deepsleep Mode.
-rtc.wakeup(30000)
-
-# Enter Deepsleep Mode.
-machine.deepsleep()
-
-# cause STM32 to wake
-
-"""
 
 ## functions
 def GreenBlink(duration):
     green_led.on()
     time.sleep(duration)
     green_led.off()
-
-
 
 def sendEndPacket():
     uart.write('\r'.encode()) # string end null character
@@ -164,15 +123,6 @@ sleepFlag = False
 
 dac = DAC(2,bits=12)
 dac.write(DAC_startvalue)
-"""
-if Lookuptable_active==1:
-    buf = bytearray(buffersize)
-    for i in range(len(buf)):
-        #buf[i] = 3250 + int((4095-3400-300) * math.sin(2 * math.pi * i / len(buf)))
-        buf = array('H', DC_offset + int(Amplitude * math.sin(2 * math.pi * i / buffersize)) for i in range(buffersize))
-    #print(buf)
-    dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
-"""
 
 # Global shutter camera setup and confugurations
 sensor.reset()                      # Reset and initialize the sensor.
@@ -193,6 +143,7 @@ print("Ready to capture")
 
 
 ## -----------Main loop-----------
+## MSI ----------------------------------------------------------------------------------------------------------------
 while(True):
     #print(button.value())
     if (button.value()== pressed or sleepFlag == True):              # button.value=1 when button pressed
@@ -354,6 +305,7 @@ while(True):
                                         Num_per_wave = int.from_bytes(uart.read(1), 'big', False)
                                         print(Num_per_wave)
                                         buffer = [None]*4
+                                        ## MSI ---------------------------------------------------------------------------
                                         for k in range(4):
                                             buffer[k] = int.from_bytes(uart.read(1), 'big', False)
                                         # Recombine the bytes into a 32-bit integer
