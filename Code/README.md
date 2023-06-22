@@ -4,3 +4,5 @@ Required code to be changed for MSI integration:
  3. gateway_new_sleep.ino
  4. root_new_sleep.ino
  5. code_integration12.py (Camera code)
+
+MSI = 0, SMFI = 1

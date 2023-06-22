@@ -64,6 +64,7 @@ int nodeID = 123;
 int period1 ;
 int period2 ;
 int period3 ;
+int MODE ; // SMFI = 0, MSI = 1
 uint8_t numImage = 2;
 uint8_t freqCount = 0;
 int timeDiff ;
@@ -307,8 +308,8 @@ void loop() {
           period3 = doc["Frequency3"].as<int>();
           numImage = doc["NumImage"].as<uint8_t>();
           timeDiff = doc["timeDiff"].as<int>();
-          // MSI ----------------------------------------------------------------------------------------
-
+          MODE = doc["timeDiff"].as<int>();
+          
           // Print the frequencies
           Serial.print("Period 1: ");
           Serial.println(period1);
@@ -320,7 +321,8 @@ void loop() {
           Serial.println(numImage);
           Serial.print("Sleep Time: ");
           Serial.println(timeDiff);
-          // MSI ----------------------------------------------------------------------------------------
+          Serial.print("Mode: ");
+          Serial.println(MODE);
 
           // End connection
           http.end();
@@ -352,7 +354,7 @@ void loop() {
       SerialPort.write(period2);
       SerialPort.write(period3);
       SerialPort.write(numImage);
-      // MSI ----------------------------------------------------------------------------------------
+      SerialPort.write(MODE);
 
       // sending all 4 bytes of timediff
       char byte1 = (timeDiff >> 24) & 0xFF;
