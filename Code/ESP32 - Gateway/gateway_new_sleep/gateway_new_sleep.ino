@@ -14,23 +14,14 @@ HardwareSerial SerialPort(2); // use UART2
 
 #define size 7000
 
-const char* ssid = "Justin";
-const char* password = "justintan";
+//const char* ssid = "Justin";
+//const char* password = "justintan";
 
-//const char* ssid = "Sam’s IPhone";
-//const char* password = "a1b2c3esp32";
+const char* ssid = "Sam’s IPhone";
+const char* password = "a1b2c3esp32";
 
 const char* UARTRecieved = "GIF89a/x01/x00/x01/x00/x00/xff/x00,/x00/x00/x00/x00/x01/x00/x01/x00/x00/x02/x00;";
-//const char* UARTRecieved = "1";
 HTTPClient http;
-//WiFiClient client;
-
-/*
-String host = "http://192.168.172.239";
-//String host = "localhost/website";
-String file = "/website/index.php";
-String URL = host + file;
-*/
 
 String host = "https://talkingtoplants.online";
 String file = "/insertData2.php";
@@ -249,10 +240,6 @@ void loop() {
           Serial.println(totalSegmentNum);
           Serial.println(period);
           Serial.println(ImageData);
-          
-          //String payload = "ID=" + String(ID) + "&ImageData=" + ImageData;
-          //String payload = "api_key=" + ApiKey + "&ID=" + String(ID) + "&ImageData=" + ImageData;
-          //http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
           String payload = "api_key=" + ApiKey + "&NodeID=" + String(number) + "&RunNumber=" + String(runNum) + "&ImageNumber=" + String(imageNum) + "&SegmentNumber=" + String(segmentNum) + "&TotalSegmentNumber="+ String(totalSegmentNum)+"&Period="+String(period)+ "&Data=" + String(ImageData);
           http.addHeader("Content-Type", "application/x-www-form-urlencoded");
