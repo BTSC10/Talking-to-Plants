@@ -1,6 +1,8 @@
 # Talking-to-Plants
 “Talking to Plants” via Active Digital Image Processing: Industry 4.0, IoT, Technology for Future Farming
 
+This project is built upon the work complete by the below team members, where the project was continued as a Summer Internship
+
 ## Team Members:
 | name  | user |
 | ------------- | ------------- |
@@ -12,5 +14,3 @@
 | Flavia Dumitrica | flaviamihaela |
 | Marton Gonczy | martongonczy |
 | Artur Cruz | ArturCr |
-
-# This project is now Archived post-final submission
