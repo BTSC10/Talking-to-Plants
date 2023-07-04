@@ -8,7 +8,7 @@ from pyb import DAC
 from pyb import Timer
 
 ## ---------------------------------------------------- PARAMETERS -------------------------------------------------------------------
-Lookuptable_active = 0 #0 or 1 => 1 to activate oscillation
+
 DC_offset = 3500-600-300 #3500 - 600
 Amplitude = 4095-DC_offset-700-700
 Frequency = [1,0.5,0.1]
@@ -19,7 +19,6 @@ capture_delay = Period/Num_per_wave
 buffersize = 1024
 flag = True
 packetSize = 3000
-headerSize = 5
 mode = 0 # SMFI = 0, MSI = 1, to change mode of button press run change this value
 
 #sleep condition
@@ -30,6 +29,7 @@ freqCount = 0
 runNum = 0
 
 ## --------------------------------------------------- FUNCTIONS, OTHER --------------------------------------------------------------
+
 def GreenBlink(duration):
     green_led.on()
     time.sleep(duration)
@@ -104,6 +104,7 @@ def reverse(b):
     return int(reversed_str, 2)
 
 ## ---------------------------------------------------- SETUP ------------------------------------------------------------------------
+
 # Status LED Setup
 red_led = pyb.LED(1)    #Setup Red LED
 green_led = pyb.LED(2)  #Setup Green LED
@@ -212,11 +213,14 @@ def SMFI:
 
     return
 
-
 ## ---------------------------------------------------- MSI --------------------------------------------------------------------------
 
+def MSI:
 
 
+
+
+    return
 
 ## ---------------------------------------------------- MAIN LOOP --------------------------------------------------------------------
 
