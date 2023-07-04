@@ -22,27 +22,6 @@ HardwareSerial SerialPort(2); // use UART2
 
 // variables
 
-const char* ssid = "Justin";
-const char* password = "justintan";
-
-//const char* ssid = "Sam’s IPhone";
-//const char* password = "a1b2c3esp32";
-
-const char* UARTRecieved = "GIF89a/x01/x00/x01/x00/x00/xff/x00,/x00/x00/x00/x00/x01/x00/x01/x00/x00/x02/x00;";
-//const char* UARTRecieved = "1";
-
-/*
-String host = "http://192.168.172.239";
-//String host = "localhost/website";
-String file = "/website/index.php";
-String URL = host + file;
-*/
-
-String host = "https://talkingtoplants.online";
-String file = "/insertData.php";
-String URL = host + file;
-String ApiKey = "CvcCKjGnBYAQoEAWtNGb6BFAdsWATKZwdNip8LVunjdsbQro1VDpVHnwXZAs8Sog";
-
 SimpleList<uint32_t> nodes;
 char buff[7000];
 char msg[7000];
@@ -53,6 +32,7 @@ uint8_t imageNum = 0;
 uint8_t segmentNum = 0;
 uint8_t totalSegmentNum = 0;
 uint8_t runNum = 1;
+uint8_t mode = 0;
 // tables arrays for lookup fast
 static bool __TABLE_INIT= false;
 static unsigned int TABLE_EV[256];
@@ -158,7 +138,7 @@ void sendMessage(){
   imageNum = buff[0];
   segmentNum = buff[1];
   totalSegmentNum = buff[2];
-  
+  mode = buff[3];
 
   //strncpy(msg, buff, bufferPoint); // copy first ith elements from buff into msg
   // set msg to be null terminator
@@ -180,6 +160,7 @@ void sendMessage(){
   Serial.println(imageNum);
   Serial.println(segmentNum);
   Serial.println(totalSegmentNum);
+  Serial.println(mode);
   Serial.println(msg);
   //Serial.println(strlen(buff));
   mesh.sendSingle(root, msg);
