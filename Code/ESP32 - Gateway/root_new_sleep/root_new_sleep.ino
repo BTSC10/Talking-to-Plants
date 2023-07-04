@@ -32,6 +32,7 @@ int numImage = 0;
 int timeDiff = 0;
 int bufferPoint = 0;
 int nodeID = 123;
+int mode = 0; // SMFI = 0, MSI = 1
 StaticJsonDocument<1024> doc;
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
@@ -218,11 +219,11 @@ void receivedCallback( uint32_t from, String &msg ) {
         frequencyTable[1] = SerialPort.read();
         frequencyTable[2] = SerialPort.read();
         numImage = SerialPort.read();
+        mode = SerialPort.read();
         //timeDiff = SerialPort.read();
         for (int i = 0 ; i <4 ; i++){
           timeDiffTable[i] = SerialPort.read();
         }
-        // MSI ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         /*
         timeDiff = (static_cast<unsigned long>(byte1) << 24) |
@@ -243,6 +244,7 @@ void receivedCallback( uint32_t from, String &msg ) {
         }
         sprintf(returnMsg + strlen(returnMsg), "%02.2X", numImage);
         //sprintf(returnMsg + strlen(returnMsg), "%02.2X", timeDiff);
+        sprintf(returnMsg + strlen(returnMsg), "%02.2X", mode);
         for (int i = 0 ; i<4 ; i++){
           sprintf(returnMsg + strlen(returnMsg), "%02.2X", timeDiffTable[i]);
         }
