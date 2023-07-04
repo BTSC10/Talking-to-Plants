@@ -20,7 +20,6 @@ HardwareSerial SerialPort(2); // use UART2
 const char* ssid = "Sam’s IPhone";
 const char* password = "a1b2c3esp32";
 
-const char* UARTRecieved = "GIF89a/x01/x00/x01/x00/x00/xff/x00,/x00/x00/x00/x00/x01/x00/x01/x00/x00/x02/x00;";
 HTTPClient http;
 
 String host = "https://talkingtoplants.online";
@@ -56,6 +55,8 @@ uint8_t segmentNum = 0;
 uint8_t totalSegmentNum = 0;
 uint8_t runNum = 0;
 uint8_t period = 0;
+uint8_t mode = 0; // SMFI = 0, MSI = 1
+
 unsigned long number = 0;
 uint8_t buff[7000];
 char msg[size];
@@ -64,7 +65,7 @@ int nodeID = 123;
 int period1 ;
 int period2 ;
 int period3 ;
-int MODE ; // SMFI = 0, MSI = 1
+int mode_new ; // SMFI = 0, MSI = 1
 uint8_t numImage = 2;
 uint8_t freqCount = 0;
 int timeDiff ;
@@ -149,6 +150,7 @@ void sendMessage(){
   // 7th = totalSegNum
   // 8th = Period
   // 9th = runNum
+  // 10th = mode
   char byte1 = buff[0];
   char byte2 = buff[1];
   char byte3 = buff[2];
@@ -162,6 +164,7 @@ void sendMessage(){
   totalSegmentNum = buff[6];
   period = buff[7];
   runNum = buff[8];
+  mode = buff[9];
 
   //strncpy(msg, buff, bufferPoint); // copy first ith elements from buff into msg
   // set msg to be null terminator
@@ -241,8 +244,9 @@ void loop() {
           Serial.println(totalSegmentNum);
           Serial.println(period);
           Serial.println(ImageData);
+          Serial.println(mode);
 
-          String payload = "api_key=" + ApiKey + "&NodeID=" + String(number) + "&RunNumber=" + String(runNum) + "&ImageNumber=" + String(imageNum) + "&SegmentNumber=" + String(segmentNum) + "&TotalSegmentNumber="+ String(totalSegmentNum)+"&Period="+String(period)+ "&Data=" + String(ImageData);
+          String payload = "api_key=" + ApiKey + "&NodeID=" + String(number) + "&RunNumber=" + String(runNum) + "&ImageNumber=" + String(imageNum) + "&SegmentNumber=" + String(segmentNum) + "&TotalSegmentNumber="+ String(totalSegmentNum)+"&Period="+String(period)+ "&Data=" + String(ImageData)+ "&Mode=" + String(mode);
           http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
           // Send message, get response code and message
@@ -308,7 +312,7 @@ void loop() {
           period3 = doc["Frequency3"].as<int>();
           numImage = doc["NumImage"].as<uint8_t>();
           timeDiff = doc["timeDiff"].as<int>();
-          MODE = doc["timeDiff"].as<int>();
+          mode_new = doc["timeDiff"].as<int>();
           
           // Print the frequencies
           Serial.print("Period 1: ");
@@ -322,7 +326,7 @@ void loop() {
           Serial.print("Sleep Time: ");
           Serial.println(timeDiff);
           Serial.print("Mode: ");
-          Serial.println(MODE);
+          Serial.println(mode_new);
 
           // End connection
           http.end();
@@ -354,7 +358,7 @@ void loop() {
       SerialPort.write(period2);
       SerialPort.write(period3);
       SerialPort.write(numImage);
-      SerialPort.write(MODE);
+      SerialPort.write(mode_new);
 
       // sending all 4 bytes of timediff
       char byte1 = (timeDiff >> 24) & 0xFF;
