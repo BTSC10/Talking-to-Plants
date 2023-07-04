@@ -45,6 +45,7 @@ f_plot_name=f"difference_of_normalised_data.jpg"
 np.savetxt("difference_data.csv",output,fmt='%f',delimiter='/n')
 plt.savefig(f_plot_name);
 
+#Future FFT (?)
 """
 fft_result = np.fft.fft(array)
 
