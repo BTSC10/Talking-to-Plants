@@ -7,23 +7,29 @@ from array import array
 from pyb import DAC
 from pyb import Timer
 
-##User defined parametters
-DAC_startvalue=3095  #4095 - 0
-Lookuptable_active=0 #0 or 1 => 1 to activate oscillation
-DC_offset = 3500-600 #4095 - 0
-Amplitude = 4095-DC_offset-700
+## ---------------------------------------------------- PARAMETERS -------------------------------------------------------------------
+Lookuptable_active = 0 #0 or 1 => 1 to activate oscillation
+DC_offset = 3500-600-300 #3500 - 600
+Amplitude = 4095-DC_offset-700-700
 Frequency = [1,0.5,0.1]
-PeriodTable = [7,2,1]
-## MSI ----------------------------------------------------------------------------------------------------------------
-Period= 10 #works within 1 to 10
-Num_per_wave=5
-capture_delay= Period/Num_per_wave
-buffersize=1024
+PeriodTable = [10,2,1]
+Period = 10 #works within 1 to 10
+Num_per_wave =100
+capture_delay = Period/Num_per_wave
+buffersize = 1024
 flag = True
 packetSize = 3000
 headerSize = 5
+mode = 0 # SMFI = 0, MSI = 1, to change mode of button press run change this value
 
-## functions
+#sleep condition
+sleepFlag = False
+
+imageCount = 0
+freqCount = 0
+runNum = 0
+
+## --------------------------------------------------- FUNCTIONS, OTHER --------------------------------------------------------------
 def GreenBlink(duration):
     green_led.on()
     time.sleep(duration)
@@ -97,8 +103,7 @@ def reverse(b):
     reversed_str = rev(padded_str)  # Reverse the string
     return int(reversed_str, 2)
 
-
-## -----------SETUP -----------
+## ---------------------------------------------------- SETUP ------------------------------------------------------------------------
 # Status LED Setup
 red_led = pyb.LED(1)    #Setup Red LED
 green_led = pyb.LED(2)  #Setup Green LED
@@ -109,20 +114,15 @@ red_led.on()            #LED RED durring setup
 uart = UART(1, 115200) #Bus ,  baudrate
 uart.init(115200, bits = 8, parity = 0, stop = 1, timeout=1000)
 #time.sleep_ms(3000) #Moredelay
-imageCount = 0
-freqCount = 0
-runNum = 0
-# Botton Setup
+
+# Button Setup
 button = pyb.Pin("P2", pyb.Pin.IN, pyb.Pin.PULL_DOWN)
 pressed = 1 #if PULL_Down=1 if PULL_UP=0
-
-#sleep condition
-sleepFlag = False
 
 # Lookuptable
 
 dac = DAC(2,bits=12)
-dac.write(DAC_startvalue)
+dac.write(0);
 
 # Global shutter camera setup and confugurations
 sensor.reset()                      # Reset and initialize the sensor.
@@ -138,206 +138,212 @@ GreenBlink(0.2)
 
 print("Ready to capture")
 
-#image capture function
+
+## ---------------------------------------------------- SMFI -------------------------------------------------------------------------
+
+def SMFI:
+    print("Capture Started - SMFI")
+
+    freqCount = 0
+
+    while freqCount <3:
+
+        # Calculate Period
+        Period = PeriodTable[freqCount]
+        print(Period)
+
+        # Update DAC values
+        dac = DAC(2,bits=12)
+        dac.write(DC_offset)
+
+        buf = bytearray(buffersize)
+
+        for i in range(len(buf)):
+            #buf[i] = 3250 + int((4095-3400-300) * math.sin(2 * math.pi * i / len(buf)))
+            buf = array('H', DC_offset + int(Amplitude * math.sin(2 * math.pi * i / buffersize)) for i in range(buffersize))
+        dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
+
+        # Calculate delay between images
+        capture_delay= int(Period/Num_per_wave*1000)
+        print(capture_delay)
+
+        imageCount = 0
+
+        # Capture first image and use to generate mask
+        img = sensor.snapshot()
+        cpy= img.copy()
+        cpy2= img.copy()
+        cpy.gaussian(3, unsharp=True, threshold=False)
+        cpy.laplacian(3, sharpen=True, threshold=True)
+        cpy.invert()
+        cpy.dilate(1, threshold=6)
+        cpy.erode(1, threshold=7)
+        cpy2.clear(cpy)
+        th=cpy2.get_histogram().get_threshold()
+        th_int= th.value()
+        thresholdNG = [(0, th_int)]
+        b=img.binary(thresholdNG,to_bitmap=True, copy=True)
+        img.clear(b).to_grayscale
+        img.save("%d.jpg"%(imageCount), quality = 80) # Store image under the name "0.jpg" #fix me! (idk what this is about)
+        print("Capture Sucess")
+        imageCount +=1
+
+        # Delay and then perform the remaining captures
+        time.sleep_ms(capture_delay)
+
+        while imageCount < Num_per_wave:
+
+            img = sensor.snapshot()     # capture image
+            print("Capture Set")
+
+            # Perform segmentation
+            img.clear(b).to_grayscale
+
+            img.save("%d.jpg"%(imageCount), quality = 80)  # Same comment as line above, not sure what its on about
+            print("Capture Sucess")
+            imageCount +=1
+
+            # Delay
+            time.sleep_ms(capture_delay)
+
+    # When all images have been captured turn off DAC (LEDs)
+    dac.write(0)
+    dac.deinit()
+
+    return
+
+
+## ---------------------------------------------------- MSI --------------------------------------------------------------------------
 
 
 
-## -----------Main loop-----------
-## MSI ----------------------------------------------------------------------------------------------------------------
+
+## ---------------------------------------------------- MAIN LOOP --------------------------------------------------------------------
+
 while(True):
     #print(button.value())
     if (button.value()== pressed or sleepFlag == True):              # button.value=1 when button pressed
+
         sleepFlag = False
-        #Reset sleepFlag
-        # for loop => take every 2 sec
+
         runNum += 1
-        print("Capture Started")
-        freqCount = 0
-        while freqCount <3:
-            # update Period
-            #Period = int(1/Frequency[freqCount])
-            Period = PeriodTable[freqCount]
-            print(Period)
-            # update dac
-            dac = DAC(2,bits=12)
-            dac.write(DAC_startvalue)
-            buf = bytearray(buffersize)
-            for i in range(len(buf)):
-                #buf[i] = 3250 + int((4095-3400-300) * math.sin(2 * math.pi * i / len(buf)))
-                buf = array('H', DC_offset + int(Amplitude * math.sin(2 * math.pi * i / buffersize)) for i in range(buffersize))
-            dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
-            # update delay time
-            capture_delay= int(Period/Num_per_wave*1000)
-            print(capture_delay)
-            imageCount = 0
-            # get 1st image & Generate mask for the other x images
-            img = sensor.snapshot()
-            cpy= img.copy()
-            cpy2= img.copy()
-            cpy.gaussian(3, unsharp=True, threshold=False)
-            cpy.laplacian(3, sharpen=True, threshold=True)
-            cpy.invert()
-            cpy.dilate(1, threshold=6)
-            cpy.erode(1, threshold=7)
-            cpy2.clear(cpy)
-            th=cpy2.get_histogram().get_threshold()
-            th_int= th.value()
-            thresholdNG = [(0, th_int)]
-            b=img.binary(thresholdNG,to_bitmap=True, copy=True)
-            img.clear(b).to_grayscale
-            img.save("%d.jpg"%(imageCount), quality = 80) # Store image under the name "0.jpg" #-----------------fix me!!!!
-            print("Capture Sucess")
-            imageCount +=1
-            #wait x sec
-            time.sleep_ms(capture_delay)
-            while imageCount < Num_per_wave:
-                img = sensor.snapshot()     # capture image
-                print("Capture Set")
-                #Segmentation Start
-                """
-                im_h=img.get_histogram()
-                th=im_h.get_threshold()
 
-                th_int= th.value()
+        SMFI()
 
-                thresholdNG = [(th_int, 255)]
+        # Send images
+        for u in range(imageCount):
 
-                print(thresholdNG)
-                b=img.binary(thresholdNG,to_bitmap=True, copy=True)
-                img.clear(b).to_grayscale()
-                """
-                # mask is reused here
-                img.clear(b).to_grayscale
-                # Segmentation End
-                img.save("%d.jpg"%(imageCount), quality = 80) # Store image under the name "0.jpg" #-----------------fix me!!!!
-                print("Capture Sucess")
-                imageCount +=1
-                #wait x sec
-                time.sleep_ms(capture_delay)
+            img = image.Image("%d.jpg"%(u), copy_to_fb = True)
 
-            # Done Images
-            # turn off LED
-            dac.write(0)
-            dac.deinit()
-            #time.sleep_ms(2000)
+            x = img.size()
+            print(x)
+            count = 0
+            segmentCount = 0;
 
-            #for loop sending all images
-            for u in range(imageCount):
-                img = image.Image("%d.jpg"%(u), copy_to_fb = True)
+            # Calculate number of segments required
+            totalSegmentCount = math.floor(x/packetSize)+1
+            print("totalSegmentCount")
+            print(totalSegmentCount)
 
+            for i in range (x):
+                if count == 0:
+                    # send packet header
+                    uart.write('\r'.encode()) #packet start
+                    uart.writechar(u+1) #image number
+                    uart.writechar(segmentCount+1) # segment count
+                    uart.writechar(totalSegmentCount) #total segment count
+                    uart.writechar(Period) #current period
+                    uart.writechar(runNum)
+                    uart.writechar(img[i])
+                    uart.writechar(mode)
+                    time.sleep_ms(5)
 
-                x = img.size()
-                print(x)
-                count = 0
-                segmentCount = 0;
-                # sends img in segments of
-                totalSegmentCount = math.floor(x/packetSize)+1
-                print("totalSegmentCount")
-                print(totalSegmentCount)
-                for i in range (x):
-                    """
-                    elif count > 64:
-                        print("Done Packet ",(segmentCount-1))
-                        count = 0
-                        time.sleep_ms(1000)
-                    """
-                    if count == 0:
-                        # send packet header
-                        uart.write('\r'.encode()) #packet start
-                        uart.writechar(u+1) #image number
-                        uart.writechar(segmentCount+1) # segment count
-                        uart.writechar(totalSegmentCount) #total segment count
-                        uart.writechar(Period) #current period
-                        uart.writechar(runNum)
-                        uart.writechar(img[i])
-                        time.sleep_ms(5)
-                        # get crc
+                    # get crc
+                    arr = []
+                    summ = packetSize+i
+                    if summ >= x:
+                        summ = x
+                    for j in range (i,summ):
+                        arr.append(img[j])
+                    crc = CRC32_Table(arr,len(arr))
+                    print(hex(crc))
 
-                        #form arr =>
-                        arr = []
-                        summ = packetSize+i
-                        if summ >= x:
-                            summ = x
-                        for j in range (i,summ):
-                            arr.append(img[j])
-                        crc = CRC32_Table(arr,len(arr))
-                        print(hex(crc))
+                elif count%128 == 0:
 
-                    elif count%128 == 0:
-                        # send 128th byte and stop
-                        uart.writechar(img[i])
-                        print("Done Packet ",(segmentCount),"  ",(u))
-                        time.sleep_ms(50) # pause a bit
+                    # send 128th byte and stop
+                    uart.writechar(img[i])
+                    print("Done Packet ",(segmentCount),"  ",(u))
+                    time.sleep_ms(50) # pause a bit
 
-                    elif i == x-1 or count==packetSize-1:
-                        print("done")
+                elif i == x-1 or count==packetSize-1:
+                    print("done")
 
-                        uart.writechar(img[i])
+                    uart.writechar(img[i])
 
-                        print("Done")
-                        sendEndPacket()
-                        # wait for next uart signal (notified by '\r')
-                        count = -1
-                        segmentCount +=1
+                    print("Done")
+                    sendEndPacket()
+                    # wait for next uart signal (notified by '\r')
+                    count = -1
+                    segmentCount +=1
 
-                        while True:
-                            if (uart.any()):
-                                print("yes")
-                                temp = uart.read(3)
-                                if (temp == b'bes'):
-                                    print("correct")
-                                    time.sleep_ms(1000)
-                                    break
-                                elif (temp==b'yes'):
-                                    print("correct Final")
-                                    time.sleep_ms(1000)
-                                    # only update if freq count is last
-                                    if (freqCount ==2 and segmentCount == totalSegmentCount):
-                                        PeriodTable[0]= int.from_bytes(uart.read(1), 'big', False)
-                                        PeriodTable[1]= int.from_bytes(uart.read(1), 'big', False)
-                                        PeriodTable[2]= int.from_bytes(uart.read(1), 'big', False)
-                                        #integer2 = int.from_bytes(byte2, byteorder='big', signed=False)
-                                        #this doesn't work as micropython doesn't support keyword arguments
-                                        #PeriodTable[1] = uart.read(1)
-                                        #PeriodTable[2] = uart.read(1)
-                                        for k in range(3):
-                                            print(PeriodTable[k])
-                                        Num_per_wave = int.from_bytes(uart.read(1), 'big', False)
-                                        print(Num_per_wave)
-                                        buffer = [None]*4
-                                        ## MSI ---------------------------------------------------------------------------
-                                        for k in range(4):
-                                            buffer[k] = int.from_bytes(uart.read(1), 'big', False)
-                                        # Recombine the bytes into a 32-bit integer
-                                        timeDiff = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]
-
-                                        print(timeDiff)  # Output: timeDIff
-                                    else:
-                                        #dump the 4 bytes
-                                        dump = int.from_bytes(uart.read(8), 'big', False)
-                                    break
-                    else:
-                        uart.writechar(img[i])
-
-                    count +=1
-                    #end of for => done one byte
-
-                # end of for done 1 image
-                print("End of UART Transmission")
-                print("ImageCount = " )
-                print(u)
-                print("segmentCount = ")
-                print(segmentCount)
-                '''
-                #wait for uart signal
-                while True:
-                    if (uart.any()):
-                        print("yes")
-                        if (uart.read()=="yes"):
+                    while True:
+                        if (uart.any()):
                             print("yes")
-                            break
+                            temp = uart.read(3)
+                            if (temp == b'bes'):
+                                print("correct")
+                                time.sleep_ms(1000)
+                                break
+                            elif (temp==b'yes'):
+                                print("correct Final")
+                                time.sleep_ms(1000)
+                                # only update if freq count is last
+                                if (freqCount ==2 and segmentCount == totalSegmentCount):
+                                    PeriodTable[0]= int.from_bytes(uart.read(1), 'big', False)
+                                    PeriodTable[1]= int.from_bytes(uart.read(1), 'big', False)
+                                    PeriodTable[2]= int.from_bytes(uart.read(1), 'big', False)
+                                    #integer2 = int.from_bytes(byte2, byteorder='big', signed=False)
+                                    #this doesn't work as micropython doesn't support keyword arguments
+                                    #PeriodTable[1] = uart.read(1)
+                                    #PeriodTable[2] = uart.read(1)
+                                    for k in range(3):
+                                        print(PeriodTable[k])
+                                    Num_per_wave = int.from_bytes(uart.read(1), 'big', False)
+                                    print(Num_per_wave)
+                                    buffer = [None]*4
+                                    ## MSI ---------------------------------------------------------------------------
+                                    for k in range(4):
+                                        buffer[k] = int.from_bytes(uart.read(1), 'big', False)
+                                    # Recombine the bytes into a 32-bit integer
+                                    timeDiff = (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]
 
-                '''
+                                    print(timeDiff)  # Output: timeDIff
+                                else:
+                                    #dump the 4 bytes
+                                    dump = int.from_bytes(uart.read(8), 'big', False)
+                                break
+                else:
+                    uart.writechar(img[i])
+
+                count +=1
+                #end of for => done one byte
+
+            # end of for done 1 image
+            print("End of UART Transmission")
+            print("ImageCount = " )
+            print(u)
+            print("segmentCount = ")
+            print(segmentCount)
+            '''
+            #wait for uart signal
+            while True:
+                if (uart.any()):
+                    print("yes")
+                    if (uart.read()=="yes"):
+                        print("yes")
+                        break
+
+            '''
             freqCount +=1
             print(freqCount)
         # Sleep for x and turn on sleep flag
