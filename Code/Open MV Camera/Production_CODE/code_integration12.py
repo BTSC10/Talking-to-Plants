@@ -278,6 +278,7 @@ def MSI:
         time.sleep_ms(1000)
 
         # Capture image and save, segmentation not performed here currently
+        img = sensor.snapshot()
         print("Image Captured")
         img.save("%d.jpg"%(imageCount), quality = 80)
         imageCount += 1
@@ -286,6 +287,15 @@ def MSI:
 
         time.sleep_ms(500)
 
+    # Turn off LEDs and disable multiplexer
+    dac.write(0)
+    dac.deinit()
+
+    S_Zero = 0
+    S_One = 0
+    S_Two = 0
+    S_Three = 0
+    Enable = 0
 
     return
 
