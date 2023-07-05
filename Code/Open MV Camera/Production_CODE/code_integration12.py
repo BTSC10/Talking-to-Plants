@@ -13,7 +13,7 @@ DC_offset = 3500-600-300 #3500 - 600
 Amplitude = 4095-DC_offset-700-700
 Frequency = [1,0.5,0.1]
 PeriodTable = [10,2,1]
-Period = 10 #works within 1 to 10
+Period = 10 # works within 1 to 10
 Num_per_wave =100
 capture_delay = Period/Num_per_wave
 buffersize = 1024
@@ -176,7 +176,7 @@ print("Ready to capture")
 def SMFI:
     print("Capture Started - SMFI")
 
-    # Set multiplexers and enable to driver channel 2 with SMFI mode
+    # Set multiplexers and enable, to drive channel 2 with SMFI mode
     S_Mode = 1
     S_Zero = mux16[2][0]
     S_One = mux16[2][1]
@@ -333,7 +333,7 @@ def Transmit:
                     uart.writechar(Period) #current period
                     uart.writechar(runNum)
                     uart.writechar(img[i])
-                    uart.writechar(mode)
+                    uart.writechar(mode) # 0 = SMFI, 1 = MSI
                     time.sleep_ms(5)
 
                     # get crc
@@ -389,7 +389,7 @@ def Transmit:
                                     Num_per_wave = int.from_bytes(uart.read(1), 'big', False)
                                     print(Num_per_wave)
                                     buffer = [None]*4
-                                    ## MSI ---------------------------------------------------------------------------
+
                                     for k in range(4):
                                         buffer[k] = int.from_bytes(uart.read(1), 'big', False)
                                     # Recombine the bytes into a 32-bit integer
@@ -429,8 +429,6 @@ while(True):
             SMFI()
         else if (mode == 1):
             MSI()
-
-        # Send images
 
         # Sleep for x and turn on sleep flag
         dac.write(0)

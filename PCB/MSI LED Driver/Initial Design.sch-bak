@@ -200,17 +200,6 @@ Wire Wire Line
 	3550 2375 3500 2375
 Wire Wire Line
 	3550 2475 3500 2475
-$Comp
-L Connector:Conn_01x18_Female J6
-U 1 1 6495AC1A
-P 2675 3475
-F 0 "J6" H 2703 3451 50  0000 L CNN
-F 1 " " H 2703 3360 50  0000 L CNN
-F 2 "" H 2675 3475 50  0001 C CNN
-F 3 "~" H 2675 3475 50  0001 C CNN
-	1    2675 3475
-	0    -1   -1   0   
-$EndComp
 Text GLabel 2250 1075 2    50   Input ~ 0
 S0
 Text GLabel 2250 1175 2    50   Input ~ 0
@@ -870,52 +859,42 @@ Text GLabel 5825 4375 2    50   Input ~ 0
 C2
 Wire Wire Line
 	5825 4375 5775 4375
-Text GLabel 1875 3675 3    50   Input ~ 0
+Text GLabel 3300 3475 0    50   Input ~ 0
 C0
-Text GLabel 1975 3675 3    50   Input ~ 0
+Text GLabel 3300 3575 0    50   Input ~ 0
 C1
-Text GLabel 2075 3675 3    50   Input ~ 0
+Text GLabel 3300 3675 0    50   Input ~ 0
 C2
-Text GLabel 2175 3675 3    50   Input ~ 0
+Text GLabel 3300 3775 0    50   Input ~ 0
 C3
-Text GLabel 2275 3675 3    50   Input ~ 0
+Text GLabel 3300 3875 0    50   Input ~ 0
 C4
-Text GLabel 2375 3675 3    50   Input ~ 0
+Text GLabel 3300 3975 0    50   Input ~ 0
 C5
-Text GLabel 2475 3675 3    50   Input ~ 0
+Text GLabel 3300 4075 0    50   Input ~ 0
 C6
-Text GLabel 2575 3675 3    50   Input ~ 0
+Text GLabel 3300 4175 0    50   Input ~ 0
 C7
-Text GLabel 2675 3675 3    50   Input ~ 0
+Text GLabel 3800 3475 2    50   Input ~ 0
 C8
-Text GLabel 2775 3675 3    50   Input ~ 0
+Text GLabel 3800 3575 2    50   Input ~ 0
 C9
-Text GLabel 2875 3675 3    50   Input ~ 0
+Text GLabel 3800 3675 2    50   Input ~ 0
 C10
-Text GLabel 2975 3675 3    50   Input ~ 0
+Text GLabel 3800 3775 2    50   Input ~ 0
 C11
-Text GLabel 3075 3675 3    50   Input ~ 0
+Text GLabel 3800 3875 2    50   Input ~ 0
 C12
-Text GLabel 3175 3675 3    50   Input ~ 0
+Text GLabel 3800 3975 2    50   Input ~ 0
 C13
-Text GLabel 3275 3675 3    50   Input ~ 0
+Text GLabel 3800 4075 2    50   Input ~ 0
 C14
-Text GLabel 3375 3675 3    50   Input ~ 0
+Text GLabel 3800 4175 2    50   Input ~ 0
 C15
-Text GLabel 3475 3675 3    50   Input ~ 0
+Text GLabel 3800 4275 2    50   Input ~ 0
 3V3
-Text GLabel 3575 3675 3    50   Input ~ 0
+Text GLabel 3300 4275 0    50   Input ~ 0
 3V3
-Wire Notes Line
-	1250 3300 1250 4025
-Wire Notes Line
-	1250 4025 4100 4025
-Wire Notes Line
-	4100 4025 4100 3300
-Wire Notes Line
-	1250 3300 4100 3300
-Text Notes 1250 3300 0    50   ~ 0
-LED Board Connector
 $Comp
 L Switch:74LVC1G3157 U18
 U 1 1 6494E9BC
@@ -1041,4 +1020,25 @@ Wire Wire Line
 	9075 1500 9150 1500
 Wire Wire Line
 	9075 975  9150 975 
+$Comp
+L Connector_Generic:Conn_02x09_Odd_Even J6
+U 1 1 6495EBE8
+P 3500 3875
+F 0 "J6" H 3550 4375 50  0000 C CNN
+F 1 " " H 3550 4401 50  0000 C CNN
+F 2 "" H 3500 3875 50  0001 C CNN
+F 3 "~" H 3500 3875 50  0001 C CNN
+	1    3500 3875
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	3025 3300 4100 3300
+Wire Notes Line
+	4100 3300 4100 4450
+Wire Notes Line
+	4100 4450 3025 4450
+Wire Notes Line
+	3025 4450 3025 3300
+Text Notes 3025 3300 0    50   ~ 0
+LED Board Connector
 $EndSCHEMATC
