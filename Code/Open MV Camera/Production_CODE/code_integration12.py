@@ -172,9 +172,17 @@ print("Ready to capture")
 
 
 ## ---------------------------------------------------- SMFI -------------------------------------------------------------------------
-## NEEDS ALTERING TO INCLUDE MULTIPLEXERS, ENABLE
+
 def SMFI:
     print("Capture Started - SMFI")
+
+    # Set multiplexers and enable to driver channel 2 with SMFI mode
+    S_Mode = 1
+    S_Zero = mux16[2][0]
+    S_One = mux16[2][1]
+    S_Two = mux16[2][2]
+    S_Three = mux16[2][3]
+    Enable = 1
 
     freqCount = 0
 
