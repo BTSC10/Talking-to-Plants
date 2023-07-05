@@ -246,7 +246,12 @@ def SMFI:
             # Delay
             time.sleep_ms(capture_delay)
 
-    # When all images have been captured turn off DAC (LEDs)
+        dac.write(0)
+
+        Transmit()
+        freqCount+=1
+
+    # When all images and runs have been captured turn off DAC (LEDs)
     dac.write(0)
     dac.deinit()
 
@@ -277,7 +282,7 @@ def MSI:
         # Wait for LEDs to turn on
         time.sleep_ms(1000)
 
-        # Capture image and save, segmentation not performed here currently
+        # Capture image and save,                           !!!!! segmentation not performed here currently !!!!!
         img = sensor.snapshot()
         print("Image Captured")
         img.save("%d.jpg"%(imageCount), quality = 80)
@@ -291,6 +296,8 @@ def MSI:
     dac.write(0)
     dac.deinit()
 
+    Transmit()
+
     S_Zero = 0
     S_One = 0
     S_Two = 0
@@ -299,24 +306,10 @@ def MSI:
 
     return
 
-## ---------------------------------------------------- MAIN LOOP --------------------------------------------------------------------
+## ---------------------------------------------------- TRANSMIT IMAGES --------------------------------------------------------------
 
-while(True):
-    #print(button.value())
-    if (button.value()== pressed or sleepFlag == True):              # button.value=1 when button pressed
-
-        sleepFlag = False
-
-        runNum += 1
-
-        # Perform either SMFI or MSI depending on the value of mode, button run will perform SMFI currently
-        if (mode == 0):
-            SMFI()
-        else if (mode == 1):
-            MSI()
-
-        # Send images
-        for u in range(imageCount):
+def Transmit:
+    for u in range(imageCount):
 
             img = image.Image("%d.jpg"%(u), copy_to_fb = True)
 
@@ -419,18 +412,26 @@ while(True):
             print(u)
             print("segmentCount = ")
             print(segmentCount)
-            '''
-            #wait for uart signal
-            while True:
-                if (uart.any()):
-                    print("yes")
-                    if (uart.read()=="yes"):
-                        print("yes")
-                        break
 
-            '''
-            freqCount +=1
-            print(freqCount)
+
+## ---------------------------------------------------- MAIN LOOP --------------------------------------------------------------------
+
+while(True):
+    #print(button.value())
+    if (button.value()== pressed or sleepFlag == True):     # button.value=1 when button pressed
+
+        sleepFlag = False
+
+        runNum += 1
+
+        # Perform either SMFI or MSI depending on the value of mode, button run will perform SMFI currently
+        if (mode == 0):
+            SMFI()
+        else if (mode == 1):
+            MSI()
+
+        # Send images
+
         # Sleep for x and turn on sleep flag
         dac.write(0)
         dac.deinit()
