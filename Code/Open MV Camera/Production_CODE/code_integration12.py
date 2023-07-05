@@ -20,6 +20,7 @@ buffersize = 1024
 flag = True
 packetSize = 3000
 mode = 0 # SMFI = 0, MSI = 1, to change mode of button press run change this value
+MSI_Amplitude = 2600
 
 #sleep condition
 sleepFlag = False
@@ -27,6 +28,27 @@ sleepFlag = False
 imageCount = 0
 freqCount = 0
 runNum = 0
+
+# MSI/SMFI
+mux16 = [['0', '0', '0', '0'],
+         ['0', '0', '0', '1'],
+         ['0', '0', '1', '0'],
+         ['0', '0', '1', '1'],
+         ['0', '1', '0', '0'],
+         ['0', '1', '0', '1'],
+         ['0', '1', '1', '0'],
+         ['0', '1', '1', '1'],
+         ['1', '0', '0', '0'],
+         ['1', '0', '0', '1'],
+         ['1', '0', '1', '0'],
+         ['1', '0', '1', '1'],
+         ['1', '1', '0', '0'],
+         ['1', '1', '0', '1'],
+         ['1', '1', '1', '0'],
+         ['1', '1', '1', '1'],
+        ]
+
+
 
 ## --------------------------------------------------- FUNCTIONS, OTHER --------------------------------------------------------------
 
@@ -117,11 +139,10 @@ uart.init(115200, bits = 8, parity = 0, stop = 1, timeout=1000)
 #time.sleep_ms(3000) #Moredelay
 
 # Button Setup
-button = pyb.Pin("P2", pyb.Pin.IN, pyb.Pin.PULL_DOWN)
+button = pyb.Pin("P7", pyb.Pin.IN, pyb.Pin.PULL_DOWN)     # This needs to be changed, as P2 is used in new design (to P7?) !!!!!!!!!!!
 pressed = 1 #if PULL_Down=1 if PULL_UP=0
 
-# Lookuptable
-
+# Configure DAC
 dac = DAC(2,bits=12)
 dac.write(0);
 
@@ -134,6 +155,16 @@ sensor.set_auto_exposure(False, exposure_us=150000) # make smaller to go faster
 sensor.set_windowing((120, 120))    ##!!!Make sure to include this line!!! (windowing is not optional but might be scalable)
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
 
+# Configure select pins
+S_Zero = pyb.Pin("P2", pyb.Pin.OUT_PP)  # For 1:16 multiplexer
+S_One = pyb.Pin("P3", pyb.Pin.OUT_PP)
+S_Two = pyb.Pin("P4", pyb.Pin.OUT_PP)
+S_Three = pyb.Pin("P5", pyb.Pin.OUT_PP)
+
+S_Mode = pyb.Pin("P8", pyb.Pin.OUT_PP)  # For 1:2 multiplexer, 0 = MSI, 1 = SMFI   !!!! This is the opposite of 'mode' !!!!
+
+Enable = pyb.Pin("P9", pyb.Pin.OUT_PP)
+
 red_led.off()
 GreenBlink(0.2)
 
@@ -141,7 +172,7 @@ print("Ready to capture")
 
 
 ## ---------------------------------------------------- SMFI -------------------------------------------------------------------------
-
+## NEEDS ALTERING TO INCLUDE MULTIPLEXERS, ENABLE
 def SMFI:
     print("Capture Started - SMFI")
 
@@ -216,8 +247,36 @@ def SMFI:
 ## ---------------------------------------------------- MSI --------------------------------------------------------------------------
 
 def MSI:
+    print("Capture Started - MSI")
 
+    # Set output to maximum
+    dac = DAC(2,bits=12)
+    dac.write(2**12 - 1)
 
+    # Select MSI mode on channel 2
+    S_Mode = 0
+
+    # Iterate through each channel, 0 to 15
+    for i in range(0,15,1):
+
+        # Configure select of 1:16 mux
+        S_Zero = mux16[i][0]
+        S_One = mux16[i][1]
+        S_Two = mux16[i][2]
+        S_Three = mux16[i][3]
+        Enable = 1
+
+        # Wait for LEDs to turn on
+        time.sleep_ms(1000)
+
+        # Capture image and save, segmentation not performed here currently
+        print("Image Captured")
+        img.save("%d.jpg"%(imageCount), quality = 80)
+        imageCount += 1
+
+        Enable = 0
+
+        time.sleep_ms(500)
 
 
     return
@@ -232,7 +291,11 @@ while(True):
 
         runNum += 1
 
-        SMFI()
+        # Perform either SMFI or MSI depending on the value of mode, button run will perform SMFI currently
+        if (mode == 0):
+            SMFI()
+        else if (mode == 1):
+            MSI()
 
         # Send images
         for u in range(imageCount):
