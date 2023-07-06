@@ -983,8 +983,8 @@ Text GLabel 4975 5400 0    50   Input ~ 0
 SMFI
 Wire Wire Line
 	4975 5400 5025 5400
-Text Notes 4900 5750 0    50   ~ 0
-Does this need a\npull-up resistor?
+Text Notes 4850 5700 0    50   ~ 0
+Does this need a\npull-down resistor?
 Text GLabel 5750 4750 2    50   Input ~ 0
 C2
 Wire Wire Line

@@ -1041,4 +1041,6 @@ Wire Notes Line
 	3025 4450 3025 3300
 Text Notes 3025 3300 0    50   ~ 0
 LED Board Connector
+Text GLabel 4925 3875 0    50   Input ~ 0
+MSI
 $EndSCHEMATC
