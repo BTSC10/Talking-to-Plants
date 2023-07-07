@@ -18,7 +18,7 @@ def sortByFrameNumber(imageName):
     return frameNumber
 
 #Define image folder
-image_folder = r'C:\Users\samry\Downloads\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230623_1620'
+image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230707_1533'
 
 #Get all .jpg files from that folder
 filenames = [f for f in os.listdir(image_folder) if f.endswith('.jpg')]
@@ -80,7 +80,8 @@ graph = pd.DataFrame()
 #Sample number on x-axis
 graph['samples'] = samples
 #Averaged value of those pixels on the y-axis - the fluorescence response of that region 
-graph['fluorescence'] = pixel_value
+PlotData = np.flip(pixel_value)
+graph['fluorescence'] = PlotData
 ax = plt.gca();
 graph.plot(ax=ax,x='samples',y='fluorescence',color='green',kind='line',label='SMFI',legend=True);
 ax.set_title('')

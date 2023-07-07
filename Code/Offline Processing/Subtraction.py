@@ -5,11 +5,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #Define subfolder path for RESPONSE
-image_folder = r'C:\Users\samry\Downloads\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230623_1620'
+image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230707_1533'
 response_path = os.path.join(image_folder, 'false_coloured_stack')
 
 #Define subfolder path for REFERENCE
-reference_path = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing'
+reference_path = r'D:\plantdata\Reference'
 
 #Get data from fluorescence response plot
 data_plot_path = os.path.join(response_path, f"fluorescence_response_data.csv")
@@ -20,14 +20,35 @@ data_plot_path = os.path.join(reference_path, f"reference.csv")
 reference = np.genfromtxt(data_plot_path, delimiter='\n')
 
 #Normalise data to reference
+reference = reference[:-1]
 scaling_factor = np.amax(reference)
-response = response * scaling_factor
+response = response / scaling_factor
 
 #Find difference
 output = reference - response
 
 size = output.size
 x = np.arange(len(output))
+
+plt.figure()    
+graph = pd.DataFrame()
+graph['samples'] = x
+graph['difference'] = response
+ax = plt.gca();
+graph.plot(ax=ax,x='samples',y='difference',color='blue',kind='line',label='Response',legend=True);
+ax.set_title('')
+ax.set_xlabel("Sample number"); ax.set_ylabel("Difference")
+ax.grid('on');
+
+plt.figure()    
+graph = pd.DataFrame()
+graph['samples'] = x
+graph['difference'] = reference
+ax = plt.gca();
+graph.plot(ax=ax,x='samples',y='difference',color='blue',kind='line',label='Reference',legend=True);
+ax.set_title('')
+ax.set_xlabel("Sample number"); ax.set_ylabel("Difference")
+ax.grid('on');
 
 #Plot graph
 plt.figure()    

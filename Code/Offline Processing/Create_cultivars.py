@@ -34,6 +34,8 @@ def create_directory_for_each_stack(dir_path, name):
 
 def split_dataframe(df, column_name):
     # List to store the split dataframes
+    global no_splits
+    no_splits = 0
     splits = []
     # Variable to keep track of the current value being processed
     current_value = None
@@ -42,12 +44,20 @@ def split_dataframe(df, column_name):
     # Iterate over each row in the dataframe
     for index, row in df.iterrows():
         # Get the value from the specified column for the current row
+        print("Current Value: ")
+        print(current_value)
+        print("Value: ")
         value = row[column_name]
+        print(value)
+        print(" ")
         # If current_value is None, assign it the value of the first row
         if current_value is None:
             current_value = value
         # If the value is greater than or equal to the current value
-        if value >= current_value:
+        if value > current_value:
+            print(" ")
+            print("Split")
+            print(" ")
             # Create a new dataframe slice from start_index to current index
             split_df = df[start_index:index]
             # Append the split dataframe to the list of splits
@@ -56,6 +66,9 @@ def split_dataframe(df, column_name):
             start_index = index
             # Update the current value to the new value
             current_value = value
+            no_splits = no_splits + 1
+            
+        
             
         current_value = value
 
@@ -92,9 +105,10 @@ for i, split_df in enumerate(split_dataframes):
     ind=0
     # Get the starting index of the split dataframe
     var=split_df.index.start
+    print("var: " + str(var))
     # Skip the first iteration as it contains an empty dataframe
     if i==0:
-        continue
+        var = 1
     # Get the 'Node Number' value of this run
     node_number=split_df['Node Number'][var]
     # Get the 'Time Period (s)' value of this run
@@ -107,6 +121,8 @@ for i, split_df in enumerate(split_dataframes):
     # Create a folder in the current directory for each SMFI run
     dir_name=f"SMFI_stack__node_{node_number}_period_{period}_{date}"
     dir_path_for_stack= create_directory_for_each_stack(dir_path, dir_name)
+    
+    print("No: " + str(no_splits))
     
     # Iterate over the indices in the split dataframe
     for ind in split_df.index:
