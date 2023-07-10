@@ -21,8 +21,8 @@ reference = np.genfromtxt(data_plot_path, delimiter='\n')
 
 #Normalise data to reference
 reference = reference[:-1]
-scaling_factor = np.amax(reference)
-response = response / scaling_factor
+scaling_factor = np.amax(reference) / np.amax(response)
+response = response * scaling_factor
 
 #Find difference
 output = reference - response
