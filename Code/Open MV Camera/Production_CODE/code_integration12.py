@@ -21,6 +21,7 @@ flag = True
 packetSize = 3000
 mode = 0 # SMFI = 0, MSI = 1, to change mode of button press run change this value
 MSI_Amplitude = 2600
+noInitialisationPeriods = 4 # No. of Periods that are ran before images start to be captured
 
 #sleep condition
 sleepFlag = False
@@ -204,6 +205,8 @@ def SMFI:
         dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
 
         # Calculate delay between images
+        time.sleep_ms(Period*1000*noInitialisationPeriods)
+
         capture_delay= int(Period/Num_per_wave*1000)
         print(capture_delay)
 

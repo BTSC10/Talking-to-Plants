@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #Define subfolder path for RESPONSE
-image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230707_1533'
+image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_10072023_1647'
 response_path = os.path.join(image_folder, 'false_coloured_stack')
 
 #Define subfolder path for REFERENCE
@@ -18,9 +18,10 @@ response = np.genfromtxt(data_plot_path, delimiter='\n')
 #Get reference data
 data_plot_path = os.path.join(reference_path, f"reference.csv")
 reference = np.genfromtxt(data_plot_path, delimiter='\n')
+reference = np.flip(reference)
 
 #Normalise data to reference
-reference = reference[:-1]
+# reference = reference[:-1]
 scaling_factor = np.amax(reference) / np.amax(response)
 response = response * scaling_factor
 

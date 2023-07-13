@@ -84,7 +84,7 @@ def formatdate(datetime_str):
     print(date)
     print(time)
     day, month, year = date.split("-")
-    hour, minute, second = time.split(":")
+    hour, minute, seconds = time.split(":")
     transformed_datetime = f"{day}{month}{year}_{hour}{minute}"
     return transformed_datetime
 

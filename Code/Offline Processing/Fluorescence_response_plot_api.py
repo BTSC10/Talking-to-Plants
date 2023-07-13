@@ -18,7 +18,7 @@ def sortByFrameNumber(imageName):
     return frameNumber
 
 #Define image folder
-image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230707_1533'
+image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230711_1538'
 
 #Get all .jpg files from that folder
 filenames = [f for f in os.listdir(image_folder) if f.endswith('.jpg')]
@@ -91,7 +91,7 @@ f_plot_name=f"fluorescence_response_plot.jpg"
 
 #Save a copy of fluorescence response data to a .csv file, so it can be used for subtraction
 data_plot_path = os.path.join(subfolder_path, f"fluorescence_response_data.csv")
-np.savetxt(data_plot_path,pixel_value,fmt='%f',delimiter='/n')
+np.savetxt(data_plot_path,PlotData,fmt='%f',delimiter='/n')
 
 #Save fluorescence plot in the same folder as the false coloured images
 output_plot_path = os.path.join(subfolder_path, f_plot_name)
