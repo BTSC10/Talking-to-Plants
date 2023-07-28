@@ -151,7 +151,73 @@ pressed = 1 #if PULL_Down=1 if PULL_UP=0
 dac = DAC(2,bits=12)
 dac.write(0);
 
+# Configure lookup table
+columns = 2
+rows = int((endValue - startingValue) / increment) + 1
 
+lookupTable = [[0] * columns for _ in range(rows)]
+intensityArray = [[0] * 1 for _ in range(1024)]
+outputValues = [[0] * 1 for _ in range(1024)]
+buf = bytearray(1024)
+
+for i in range(rows):
+    # Calculate DAC Values and corresponding intensity values with below equation, then fill look-up table
+    DACValue = startingValue + increment * i
+
+    # y = 0.000000110910x^3 - 0.000821821692x^2 + 2.037508154827x - 1,688.974974291580
+    intensity = 0.000000110910*DACValue**3 - 0.000821821692*DACValue**2 + 2.037508154827*DACValue - 1688.974974291580
+    intensity = round(intensity, 2)
+
+    lookupTable[i][0] = DACValue
+    lookupTable[i][1] = intensity
+
+# Look-up table has now been formed so start sine wave and find appropriate outputs
+for i in range(1024):
+    intensity = intensityOffset + intensityA * math.sin(2 * math.pi * i / 1024)
+    intensityArray[i] = intensity
+
+smallestDifference = intensityArray[1]
+index = 0
+
+for i in range(1024):
+    desiredIntensity = intensityArray[i]
+    start = index
+
+    # Calculate 'direction' to look in from previous value
+    if ((desiredIntensity - intensityArray[i-1] > 0 ) and i != 0):
+        end = rows
+        step = 1
+
+    elif ((desiredIntensity - intensityArray[i-1] < 0 ) and i != 0):
+        end = 0
+        step = -1
+
+    elif ((desiredIntensity - intensityArray[i-1] == 0 ) or i == 0):
+        end = rows
+        step = 1
+
+    previousDifference = 100
+
+    for n in range(start, end, step):
+        difference = abs(desiredIntensity - lookupTable[n][1])
+
+        # If the difference starts increasing, break, as it is pointless to keep searching
+        if (previousDifference < difference):
+            break
+
+        if difference < smallestDifference:
+            smallestDifference = difference
+            index = n
+
+        previousDifference = difference
+
+    #print(index - start) # allows for no. of steps taken to be seen, lower = smaller runtime
+
+    smallestDifference = 100
+
+    outputValues[i] = lookupTable[index][0]
+
+    print(outputValues[i]) # For testing
 
 # Global shutter camera setup and confugurations
 sensor.reset()                      # Reset and initialize the sensor.
@@ -193,32 +259,41 @@ def SMFI():
 
     freqCount = 0
 
-    while freqCount <3:
+    while freqCount < 3:
 
-        # Calculate Period
+        # Get period
         Period = PeriodTable[freqCount]
         print(Period)
 
-        # Update DAC values
+        # Setup DAC
         dac = DAC(2,bits=12)
-        dac.write(DC_offset)
+        dac.write(outputValues[0])
 
-        buf = bytearray(buffersize)
+        # Calculate capture delay
+        capture_delay = int(Period/Num_per_wave*1000)
 
-        for i in range(len(buf)):
-            #buf[i] = 3250 + int((4095-3400-300) * math.sin(2 * math.pi * i / len(buf)))
-            buf = array('H', DC_offset + int(Amplitude * math.sin(2 * math.pi * i / buffersize)) for i in range(buffersize))
+        # Fill buffer with Output Values
+        buf = array('H', outputValues)
+
+        # Print values that the intensity values desired and the corresponding Output Values, for testing
+        for i in range(1024):
+            print(str(intensityArray[i]) + ", " + str(buf[i]) + ", " + str(outputValues[i]))
+
+        # Write buffer via DMA to DAC, at a frequency determined by the period
         dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
 
-        # Calculate delay between images
-        time.sleep_ms(Period*1000*noInitialisationPeriods)
+        # Run several time periods before images are captured
+        steps = 1
 
-        capture_delay= int(Period/Num_per_wave*1000)
-        print(capture_delay)
+        while steps < noInitialisationPeriods:
 
-        imageCount = 0
+            print("Step: " + str(steps))
+
+            time.sleep_ms(capture_delay*Num_per_wave)
+            steps += 1
 
         # Capture first image and use to generate mask
+        imageCount = 0
         img = sensor.snapshot()
         cpy= img.copy()
         cpy2= img.copy()
@@ -233,7 +308,7 @@ def SMFI():
         thresholdNG = [(0, th_int)]
         b=img.binary(thresholdNG,to_bitmap=True, copy=True)
         img.clear(b).to_grayscale
-        img.save("%d.jpg"%(imageCount), quality = 80) # Store image under the name "0.jpg" #fix me! (idk what this is about)
+        img.save("%d.jpg"%(imageCount), quality = 80) # Store image under the name "0.jpg" #fix me! (idk what the fix is about)
         print("Capture Sucess")
         imageCount +=1
 
@@ -273,7 +348,7 @@ def MSI():
 
     # Set output to maximum
     dac = DAC(2,bits=12)
-    dac.write(2**12 - 1)
+    dac.write(outputValues[0])
 
     # Select MSI mode on channel 2
     S_Mode = 0
