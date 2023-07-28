@@ -49,7 +49,7 @@ mux16 = [
         ]
 
 # Lookup table parameters
-startingValue = 2400              # Equation for line found from data ranging between 2400 and 3000
+startingValue = 2400              # Equation for line found from data ranging between 2400 and 3000,
 endValue = 3000                   # so values outside of this should not be chosen
 increment = 1
 intensityA = 0.85                 # UPDATE
@@ -183,7 +183,7 @@ for i in range(1024):
     desiredIntensity = intensityArray[i]
     start = index
 
-    # Calculate 'direction' to look in from previous value
+    # Calculate direction to 'look' in from previous value
     if ((desiredIntensity - intensityArray[i-1] > 0 ) and i != 0):
         end = rows
         step = 1
