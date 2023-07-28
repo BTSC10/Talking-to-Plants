@@ -26,7 +26,7 @@ headerSize = 5
 startingValue = 2400              # Equation for line found from data ranging between 2400 and 3000
 endValue = 3000                   # so values outside of this should not be chosen
 increment = 1
-intensityA = 2                 # UPDATE
+intensityA = 0.85                 # UPDATE
 intensityOffset = 3.67            # UPDATE
 
 ## functions

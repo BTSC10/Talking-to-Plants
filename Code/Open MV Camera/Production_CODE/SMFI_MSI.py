@@ -9,11 +9,9 @@ from pyb import Timer
 
 ## ---------------------------------------------------- PARAMETERS -------------------------------------------------------------------
 
-DC_offset = 3500-600-300 #3500 - 600
-Amplitude = 4095-DC_offset-700-700
 Frequency = [1,0.5,0.1]
 PeriodTable = [10,2,1]
-Period = 10 # works within 1 to 10
+Period = 0
 Num_per_wave =100
 capture_delay = Period/Num_per_wave
 buffersize = 1024
@@ -31,7 +29,8 @@ freqCount = 0
 runNum = 0
 
 # MSI/SMFI
-mux16 = [['0', '0', '0', '0'],
+mux16 = [
+         ['0', '0', '0', '0'],
          ['0', '0', '0', '1'],
          ['0', '0', '1', '0'],
          ['0', '0', '1', '1'],
@@ -49,7 +48,12 @@ mux16 = [['0', '0', '0', '0'],
          ['1', '1', '1', '1'],
         ]
 
-
+# Lookup table parameters
+startingValue = 2400              # Equation for line found from data ranging between 2400 and 3000
+endValue = 3000                   # so values outside of this should not be chosen
+increment = 1
+intensityA = 0.85                 # UPDATE
+intensityOffset = 3.67            # UPDATE
 
 ## --------------------------------------------------- FUNCTIONS, OTHER --------------------------------------------------------------
 
@@ -147,6 +151,8 @@ pressed = 1 #if PULL_Down=1 if PULL_UP=0
 dac = DAC(2,bits=12)
 dac.write(0);
 
+
+
 # Global shutter camera setup and confugurations
 sensor.reset()                      # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
@@ -174,7 +180,7 @@ print("Ready to capture")
 
 ## ---------------------------------------------------- SMFI -------------------------------------------------------------------------
 
-def SMFI:
+def SMFI():
     print("Capture Started - SMFI")
 
     # Set multiplexers and enable, to drive channel 2 with SMFI mode
@@ -262,7 +268,7 @@ def SMFI:
 
 ## ---------------------------------------------------- MSI --------------------------------------------------------------------------
 
-def MSI:
+def MSI():
     print("Capture Started - MSI")
 
     # Set output to maximum
@@ -311,7 +317,7 @@ def MSI:
 
 ## ---------------------------------------------------- TRANSMIT IMAGES --------------------------------------------------------------
 
-def Transmit:
+def Transmit():
     for u in range(imageCount):
 
             img = image.Image("%d.jpg"%(u), copy_to_fb = True)
@@ -421,6 +427,8 @@ def Transmit:
 
 while(True):
     #print(button.value())
+    print("Main Loop")
+
     if (button.value()== pressed or sleepFlag == True):     # button.value=1 when button pressed
 
         sleepFlag = False
@@ -430,7 +438,7 @@ while(True):
         # Perform either SMFI or MSI depending on the value of mode, button run will perform SMFI currently
         if (mode == 0):
             SMFI()
-        else if (mode == 1):
+        elif (mode == 1):
             MSI()
 
         # Sleep for x and turn on sleep flag
