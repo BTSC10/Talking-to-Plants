@@ -18,7 +18,7 @@ def sortByFrameNumber(imageName):
     return frameNumber
 
 #Define image folder
-image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230720_1209'
+image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230802_1047'
 
 #Get all .jpg files from that folder
 filenames = [f for f in os.listdir(image_folder) if f.endswith('.jpg')]

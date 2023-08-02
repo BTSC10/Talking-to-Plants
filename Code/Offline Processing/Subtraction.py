@@ -22,6 +22,8 @@ reference = np.flip(reference)
 
 #Normalise data to reference
 # reference = reference[:-1]
+reference = reference - np.average(reference)
+response = response - np.average(response)
 scaling_factor = np.amax(reference) / np.amax(response)
 response = response * scaling_factor
 
