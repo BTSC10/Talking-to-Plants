@@ -48,11 +48,14 @@ mux16 = [
         ]
 
 # Lookup table parameters
-startingValue = 2400              # Equation for line found from data ranging between 2400 and 3000,
-endValue = 3000                   # so values outside of this should not be chosen
+startingValue = 2350              # Equation for line found from data ranging between 2400 and 3000,
+endValue = 3050                   # so values far outside of this should not be chosen
 increment = 1
-intensityA = 0.85                 # UPDATE
-intensityOffset = 3.67            # UPDATE
+intensityA = 10                   # Reference Card: Amplitude = 0.85, Offset = 3.67
+intensityOffset = 14              # Plant: Amplitude = 10, Offset = 14
+
+flagHigh = 0
+flagLow = 0
 
 ## --------------------------------------------------- FUNCTIONS, OTHER --------------------------------------------------------------
 
@@ -216,6 +219,11 @@ for i in range(1024):
 
     outputValues[i] = lookupTable[index][0]
 
+    if (output > endValue):
+        flagHigh = 1
+    elif (output < startingValue):
+        flagLow = 1
+
     print(outputValues[i]) # For testing
 
 # Global shutter camera setup and confugurations
@@ -277,6 +285,11 @@ def SMFI():
         # Print values that the intensity values desired and the corresponding Output Values, for testing
         for i in range(1024):
             print(str(intensityArray[i]) + ", " + str(buf[i]) + ", " + str(outputValues[i]))
+
+        if (flagHigh):
+                print("Out of range - High")
+            elif (flagLow):
+                print("Out of range - Low")
 
         # Write buffer via DMA to DAC, at a frequency determined by the period
         dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
