@@ -23,11 +23,14 @@ packetSize = 3000
 headerSize = 5
 
 # Lookup table parameters
-startingValue = 2400              # Equation for line found from data ranging between 2400 and 3000
-endValue = 3000                   # so values outside of this should not be chosen
+startingValue = 2350              # Equation for line found from data ranging between 2400 and 3000
+endValue = 3050                   # so values far outside this range should not be used
 increment = 1
-intensityA = 3                 # Reference Card, A = 0.85, Offset = 3.67
-intensityOffset = 4.3             # Plant,
+intensityA = 10                   # Reference Card: Amplitude = 0.85, Offset = 3.67
+intensityOffset = 14              # Plant: Amplitude = 10, Offset = 14
+
+flagHigh = 0
+flagLow = 0
 
 ## functions
 def GreenBlink(duration):
@@ -192,13 +195,19 @@ for i in range(1024):
 
     output = lookupTable[index][0]
     outputValues[i] = output
+
+    if (output > endValue):
+        flagHigh = 1
+    elif (output < startingValue):
+        flagLow = 1
+
     print(output)
 
 # Global shutter camera setup and confugurations
 sensor.reset()                      # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
 sensor.set_framesize(sensor.QVGA)   # Set frame size to QVGA (320x240)
-sensor.set_auto_gain(False,20) # 10
+sensor.set_auto_gain(False,10)
 sensor.set_auto_exposure(False, exposure_us=150000) # make smaller to go faster
 sensor.set_windowing((120, 120))    ##!!!Make sure to include this line!!! (windowing is not optional but might be scalable)
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
@@ -242,6 +251,11 @@ while(True):
 
             for i in range(1024):
                 print(str(intensityArray[i]) + ", " + str(buf[i]) + ", " + str(outputValues[i]))
+
+            if (flagHigh):
+                print("Out of range - High")
+            elif (flagLow):
+                print("Out of range - Low")
 
             dac.write_timed(buf, len(buf)//Period, mode=DAC.CIRCULAR)
 
