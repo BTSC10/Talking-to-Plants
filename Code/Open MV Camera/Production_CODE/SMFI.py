@@ -11,9 +11,10 @@ from pyb import Timer
 DAC_startvalue=3095 #4095 - 0, 3095
 Lookuptable_active=0 #0 or 1 => 1 to activate oscillation
 DC_offset = 2480 #3500 - 600 = 2900
-Amplitude = 60 # 4095-DC_offset-200-700-700 = -405
-Frequency = [1,0.5,0.1]
-PeriodTable = [10,2,1]
+#Amplitude = 60 # 4095-DC_offset-200-700-700 = -405
+#Frequency = [1,0.5,0.1]
+
+PeriodTable = [60,2,1]
 Period= 10 #works within 1 to 10
 Num_per_wave=100
 capture_delay= Period/Num_per_wave
@@ -21,13 +22,14 @@ buffersize=1024
 flag = True
 packetSize = 3000
 headerSize = 5
+TotalSteps = 1
 
 # Lookup table parameters
-startingValue = 2350              # Equation for line found from data ranging between 2400 and 3000
-endValue = 3050                   # so values far outside this range should not be used
+startingValue = 2800              # Reference Card: startingValue = 2400, endValue = 3000
+endValue = 3300                   # Plant: startingValue = 2800, endValue = 3300
 increment = 1
-intensityA = 10                   # Reference Card: Amplitude = 0.85, Offset = 3.67
-intensityOffset = 14              # Plant: Amplitude = 10, Offset = 14
+intensityA = 30                   # Reference Card: Amplitude = 0.85, Offset = 3.67
+intensityOffset = 39              # Plant: Amplitude = 30, Offset = 39
 
 flagHigh = 0
 flagLow = 0
@@ -131,6 +133,7 @@ sleepFlag = False
 dac = DAC(2,bits=12)
 dac.write(DAC_startvalue)
 
+## TO DO WITH INTENSITY SETUP
 columns = 2
 rows = int((endValue - startingValue) / increment) + 1
 
@@ -149,6 +152,8 @@ for i in range(rows):
 
     lookupTable[i][0] = DACValue
     lookupTable[i][1] = intensity
+
+    print(str(DACValue) + ", " + str(intensity))
 
 # Look-up table has now been formed so start sine wave and find appropriate outputs
 for i in range(1024):
@@ -207,8 +212,8 @@ for i in range(1024):
 sensor.reset()                      # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
 sensor.set_framesize(sensor.QVGA)   # Set frame size to QVGA (320x240)
-sensor.set_auto_gain(False,10)
-sensor.set_auto_exposure(False, exposure_us=150000) # make smaller to go faster
+sensor.set_auto_gain(False,15)
+sensor.set_auto_exposure(False, exposure_us=300000) # make smaller to go faster
 sensor.set_windowing((120, 120))    ##!!!Make sure to include this line!!! (windowing is not optional but might be scalable)
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
 
@@ -240,9 +245,9 @@ while(True):
             dac = DAC(2,bits=12)
             #dac.write(DAC_startvalue)
             #dac.write(DC_offset)
-            dac.write(DC_offset)              # 111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+            dac.write(outputValues[0])              # 111111111111111111111111111111111111111111111111111111111111111111111111111111111111
 
-            TotalSteps = 4
+
             steps = 1
 
             capture_delay= int(Period/Num_per_wave*1000)
@@ -319,6 +324,8 @@ while(True):
             dac.write(0)
             dac.deinit()
             #time.sleep_ms(2000)
+
+## I DO NOT UNDERSTAND BELOW THIS
 
             #for loop sending all images
             for u in range(imageCount):

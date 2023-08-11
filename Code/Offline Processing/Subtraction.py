@@ -5,23 +5,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #Define subfolder path for RESPONSE
-image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230802_1217'
+image_folder = r'D:\Uni Work\Internship\Code\GitHub Repo\Talking-to-Plants-Summer-Work\Code\Offline Processing\Cultivar_assessment_SMFI\SMFI_stack__node_2_period_10_20230811_1433'
 response_path = os.path.join(image_folder, 'false_coloured_stack')
 
 #Define subfolder path for REFERENCE
-reference_path = r'D:\plantdata\Reference'
+reference_path = r'D:\plantdata\Data\Images\Downloaded from Website\1 - Reference'
 
 #Get data from fluorescence response plot
 data_plot_path = os.path.join(response_path, f"fluorescence_response_data.csv")
 response = np.genfromtxt(data_plot_path, delimiter='\n')
 
 #Get reference data
-data_plot_path = os.path.join(reference_path, f"reference.csv")
+data_plot_path = os.path.join(reference_path, f"fluorescence_response_data.csv")
 reference = np.genfromtxt(data_plot_path, delimiter='\n')
 reference = np.flip(reference)
 
 #Normalise data to reference
-response = response[:-1]
+#response = response[:-1]
 reference = np.flip(reference) # I'm not sure why the array needs to be flipped again but it just does
 reference = reference - np.average(reference)
 response = response - np.average(response)
@@ -71,16 +71,3 @@ np.savetxt("difference_data.csv",output,fmt='%f',delimiter='/n')
 plt.savefig(f_plot_name);
 
 #Future FFT (?)
-
-fft_result = np.fft.fft(output)
-
-sampling_rate = 10
-freq_axis = np.fft.fftfreq(len(output), d=1/sampling_rate)
-
-plt.figure()
-plt.plot(freq_axis, np.abs(fft_result))
-plt.xlabel('Frequency')
-plt.ylabel('Amplitude')
-ax.set_title('')
-graph.plot(ax=ax,x='samples',y='difference',color='blue',kind='line',label='FFT',legend=True);
-f_plot_name=f"FFT.jpg"
