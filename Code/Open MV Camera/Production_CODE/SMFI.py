@@ -212,8 +212,8 @@ for i in range(1024):
 sensor.reset()                      # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
 sensor.set_framesize(sensor.QVGA)   # Set frame size to QVGA (320x240)
-sensor.set_auto_gain(False,15)
-sensor.set_auto_exposure(False, exposure_us=300000) # make smaller to go faster
+sensor.set_auto_gain(False,10)
+sensor.set_auto_exposure(False, exposure_us=150000) # make smaller to go faster
 sensor.set_windowing((120, 120))    ##!!!Make sure to include this line!!! (windowing is not optional but might be scalable)
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
 

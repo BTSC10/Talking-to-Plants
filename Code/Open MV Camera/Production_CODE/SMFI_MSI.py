@@ -16,7 +16,7 @@ capture_delay = Period/Num_per_wave
 buffersize = 1024
 flag = True
 packetSize = 3000
-mode = 0 # SMFI = 0, MSI = 1, to change mode of button press run change this value
+mode = 1 # SMFI = 0, MSI = 1, to change mode of button press run change this value
 MSI_Amplitude = 2600
 noInitialisationPeriods = 4 # No. of Periods that are ran before images start to be captured
 
@@ -48,11 +48,11 @@ mux16 = [
         ]
 
 # Lookup table parameters
-startingValue = 2350              # Equation for line found from data ranging between 2400 and 3000,
-endValue = 3050                   # so values far outside of this should not be chosen
+startingValue = 2800              # Reference Card: startingValue = 2400, endValue = 3000
+endValue = 3300                   # Plant: startingValue = 2800, endValue = 3300
 increment = 1
-intensityA = 10                   # Reference Card: Amplitude = 0.85, Offset = 3.67
-intensityOffset = 14              # Plant: Amplitude = 10, Offset = 14
+intensityA = 30                   # Reference Card: Amplitude = 0.85, Offset = 3.67
+intensityOffset = 39              # Plant: Amplitude = 30, Offset = 39
 
 flagHigh = 0
 flagLow = 0
@@ -219,9 +219,9 @@ for i in range(1024):
 
     outputValues[i] = lookupTable[index][0]
 
-    if (output > endValue):
+    if (outputValues[i] >= endValue):
         flagHigh = 1
-    elif (output < startingValue):
+    if (outputValues[i] <= startingValue):
         flagLow = 1
 
     print(outputValues[i]) # For testing
@@ -230,7 +230,7 @@ for i in range(1024):
 sensor.reset()                      # Reset and initialize the sensor.
 sensor.set_pixformat(sensor.GRAYSCALE) # Set pixel format to RGB565 (or GRAYSCALE)
 sensor.set_framesize(sensor.QVGA)   # Set frame size to QVGA (320x240)
-sensor.set_auto_gain(False,20)
+sensor.set_auto_gain(False,10)
 sensor.set_auto_exposure(False, exposure_us=150000) # make smaller to go faster
 sensor.set_windowing((120, 120))    ##!!!Make sure to include this line!!! (windowing is not optional but might be scalable)
 sensor.skip_frames(time = 2000)     # Wait for settings take effect.
@@ -258,15 +258,19 @@ def SMFI():
 
     # Set multiplexers and enable, to drive channel 2 with SMFI mode
     S_Mode = 1
-    S_Zero = mux16[2][0]
-    S_One = mux16[2][1]
-    S_Two = mux16[2][2]
-    S_Three = mux16[2][3]
+    S_Zero = mux16[2][3]
+    S_One = mux16[2][2]
+    S_Two = mux16[2][1]
+    S_Three = mux16[2][0]
     Enable = 1
 
     freqCount = 0
 
-    while freqCount < 3:
+    while(True):
+        time.sleep_ms(1000)
+
+
+    while(freqCount < 3):
 
         # Get period
         Period = PeriodTable[freqCount]
@@ -288,7 +292,7 @@ def SMFI():
 
         if (flagHigh):
                 print("Out of range - High")
-            elif (flagLow):
+        elif (flagLow):
                 print("Out of range - Low")
 
         # Write buffer via DMA to DAC, at a frequency determined by the period
@@ -358,35 +362,79 @@ def SMFI():
 def MSI():
     print("Capture Started - MSI")
 
+    # Configure select pins
+    S_Zero = pyb.Pin("P2", pyb.Pin.OUT_PP)  # For 1:16 multiplexer
+    S_One = pyb.Pin("P3", pyb.Pin.OUT_PP)
+    S_Two = pyb.Pin("P4", pyb.Pin.OUT_PP)
+    S_Three = pyb.Pin("P5", pyb.Pin.OUT_PP)
+
+    S_Zero.low()
+    S_One.low()
+    S_Two.low()
+    S_Three.low()
+
+    S_Mode = pyb.Pin("P8", pyb.Pin.OUT_PP)  # For 1:2 multiplexer, 0 = MSI, 1 = SMFI   !!!! This is the opposite of 'mode' !!!!
+
+    Enable = pyb.Pin("P9", pyb.Pin.OUT_PP)  # Active low
+    Enable.low()
+
     # Set output to maximum
     dac = DAC(2,bits=12)
-    dac.write(outputValues[0])
+    dac.write(0)
 
     # Select MSI mode on channel 2
-    S_Mode = 0
+    S_Mode.low()
+
+    imageCount = 0
 
     # Iterate through each channel, 0 to 15
-    for i in range(0,15,1):
+    i = 0
+    while(i<16):
 
+        print("i = " + str(i))
+
+        print(mux16[i])
         # Configure select of 1:16 mux
-        S_Zero = mux16[i][0]
-        S_One = mux16[i][1]
-        S_Two = mux16[i][2]
-        S_Three = mux16[i][3]
-        Enable = 1
+        if (mux16[i][3] == '1'):
+            S_Zero.high()
+        if (mux16[i][2] == '1'):
+            S_One.high()
+        if (mux16[i][1] == '1'):
+            S_Two.high()
+        if (mux16[i][0] == '1'):
+            S_Three.high()
+
+        time.sleep_ms(500)
+
+        if(mux16[i][0] == '0' and mux16[i][1] == '0' and mux16[i][2] == '1' and mux16[i][3] == '0'):
+            #Enable.high()
+            dac.write(0)
+        else:
+            #Enable.low()
+            dac.write(4095)
+
+        print('Select and Out set')
 
         # Wait for LEDs to turn on
-        time.sleep_ms(1000)
+        time.sleep_ms(5000)
 
         # Capture image and save,                           !!!!! segmentation not performed here currently !!!!!
         img = sensor.snapshot()
         print("Image Captured")
         img.save("%d.jpg"%(imageCount), quality = 80)
         imageCount += 1
+        print('2')
 
-        Enable = 0
+        time.sleep_ms(1000)
 
-        time.sleep_ms(500)
+        print('Out low')
+
+        #Enable.high()
+        dac.write(0)
+
+        time.sleep_ms(1000)
+
+        i += 1
 
     # Turn off LEDs and disable multiplexer
     dac.write(0)
@@ -516,7 +564,7 @@ while(True):
     #print(button.value())
     print("Main Loop")
 
-    if (button.value()== pressed or sleepFlag == True):     # button.value=1 when button pressed
+    if (button.value()== pressed or sleepFlag == False):     # button.value=1 when button pressed
 
         sleepFlag = False
 
@@ -531,5 +579,5 @@ while(True):
         # Sleep for x and turn on sleep flag
         dac.write(0)
         dac.deinit()
-        time.sleep_ms(timeDiff*1000)
+        time.sleep_ms(1000)
         sleepFlag = True
